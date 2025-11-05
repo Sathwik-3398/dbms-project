@@ -90,7 +90,7 @@ const transactionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-transactionSchema.index({ transactionId: 1 });
+// transactionId index is automatically created by unique: true
 transactionSchema.index({ buyerId: 1, createdAt: -1 });
 transactionSchema.index({ sellerId: 1, createdAt: -1 });
 transactionSchema.index({ status: 1 });

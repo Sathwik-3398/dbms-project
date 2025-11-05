@@ -31,8 +31,7 @@ const AddBook = () => {
     images: []
   });
 
-  const [imageUrls, setImageUrls] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,42 +49,6 @@ const AddBook = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    setUploading(true);
-    const uploadedUrls = [];
-
-    try {
-      for (const file of files) {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const response = await api.post('/upload/image', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        uploadedUrls.push(response.data.url);
-        
-        if (response.data.message) {
-          toast.info(response.data.message);
-        }
-      }
-
-      setImageUrls(prev => [...prev, ...uploadedUrls]);
-      
-      if (uploadedUrls.length > 0) {
-        toast.success(`${files.length} image(s) processed`);
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Image upload failed. Using placeholder.');
-      setImageUrls(prev => [...prev, 'https://via.placeholder.com/400x600?text=Book+Cover']);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,8 +61,8 @@ const AddBook = () => {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : parseFloat(formData.price),
         publicationYear: formData.publicationYear ? parseInt(formData.publicationYear) : new Date().getFullYear(),
         pages: formData.pages ? parseInt(formData.pages) : 100,
-        genre: formData.genre ? formData.genre.split(',').map(g => g.trim()) : [],
-        images: imageUrls.length > 0 ? imageUrls : ['https://via.placeholder.com/400x600?text=Book+Cover']
+        genre: [],
+        images: imageUrl.trim() ? [imageUrl.trim()] : []
       };
 
       await api.post('/books', bookData);
@@ -301,21 +264,7 @@ const AddBook = () => {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Genre (comma separated)
-                </label>
-                <input
-                  type="text"
-                  name="genre"
-                  value={formData.genre}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Classic, American Literature"
-                />
-              </div>
-
+            <div className="mt-4">
               <div>
                 <label className="block text-gray-700 mb-2 font-medium">
                   Language
@@ -441,48 +390,38 @@ const AddBook = () => {
             </div>
           </div>
 
-          {/* Image Upload */}
+          {/* Image URL */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
               <Upload className="w-5 h-5 mr-2" />
-              Book Images
+              Book Image
             </h2>
             
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-                disabled={uploading}
-              />
-              <label
-                htmlFor="image-upload"
-                className="cursor-pointer inline-block"
-              >
-                <div className="text-gray-600">
-                  <Upload className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                  <p className="text-lg font-medium">
-                    {uploading ? 'Uploading...' : 'Click to upload images'}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    PNG, JPG up to 5MB (Optional - placeholder will be used if skipped)
-                  </p>
-                </div>
+            <div>
+              <label className="block text-gray-700 mb-2 font-medium">
+                Image URL (Optional)
               </label>
-
-              {imageUrls.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {imageUrls.map((url, index) => (
-                    <img
-                      key={index}
-                      src={url}
-                      alt={`Book ${index + 1}`}
-                      className="w-full h-32 object-cover rounded"
-                    />
-                  ))}
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="input-field"
+                placeholder="https://example.com/book-cover.jpg"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Paste image URL from Google Images or any website. Leave empty to use auto-generated cover.
+              </p>
+              
+              {imageUrl && (
+                <div className="mt-4">
+                  <img
+                    src={imageUrl}
+                    alt="Book preview"
+                    className="w-48 h-64 object-cover rounded-lg shadow-md"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x450/f97316/ffffff?text=Invalid+URL';
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -492,7 +431,7 @@ const AddBook = () => {
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={loading || uploading}
+              disabled={loading}
               className="btn-primary flex-1 py-3 text-lg"
             >
               {loading ? 'Adding Book...' : 'Add Book'}

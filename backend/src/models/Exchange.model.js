@@ -97,7 +97,7 @@ exchangeSchema.pre('save', function(next) {
   next();
 });
 
-exchangeSchema.index({ exchangeId: 1 });
+// exchangeId index is automatically created by unique: true
 exchangeSchema.index({ initiatorId: 1, status: 1 });
 exchangeSchema.index({ receiverId: 1, status: 1 });
 exchangeSchema.index({ status: 1 });

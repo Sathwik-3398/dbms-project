@@ -96,7 +96,14 @@ exports.createBook = async (req, res) => {
       bookData.originalPrice = bookData.price;
     }
     if (!bookData.images || bookData.images.length === 0) {
-      bookData.images = ['https://via.placeholder.com/400x600?text=Book+Cover'];
+      // Try to use Open Library cover if ISBN is available, otherwise use styled placeholder
+      if (bookData.isbn) {
+        bookData.images = [`https://covers.openlibrary.org/b/isbn/${bookData.isbn}-L.jpg`];
+      } else {
+        // Create a nice placeholder with the book title
+        const titleText = encodeURIComponent(bookData.title.substring(0, 30));
+        bookData.images = [`https://via.placeholder.com/300x450/f97316/ffffff?text=${titleText}`];
+      }
     }
     if (!bookData.genre || bookData.genre.length === 0) {
       bookData.genre = [];

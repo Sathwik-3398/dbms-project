@@ -37,7 +37,7 @@ const BookList = () => {
       
       <div className="mb-8 flex gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-3 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search books..."
@@ -54,17 +54,25 @@ const BookList = () => {
 
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
         {books.map((book) => (
-          <Link key={book._id} to={`/books/${book._id}`} className="card hover:shadow-lg transition">
-            <img
-              src={book.images[0] || '/placeholder-book.jpg'}
-              alt={book.title}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h3 className="font-semibold text-lg mb-2 line-clamp-2">{book.title}</h3>
+          <Link key={book._id} to={`/books/${book._id}`} className="card hover:shadow-lg transition group">
+            <div className="relative overflow-hidden rounded-lg mb-4 bg-gray-100">
+              <img
+                src={book.images[0] || `https://via.placeholder.com/300x450/f97316/ffffff?text=${encodeURIComponent(book.title.substring(0, 20))}`}
+                alt={book.title}
+                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  e.target.src = `https://via.placeholder.com/300x450/f97316/ffffff?text=${encodeURIComponent(book.title.substring(0, 20))}`;
+                }}
+              />
+              <div className="absolute top-2 right-2 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                ₹{book.price}
+              </div>
+            </div>
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary-600 transition">{book.title}</h3>
             <p className="text-gray-600 text-sm mb-2">{book.author}</p>
             <div className="flex justify-between items-center">
-              <span className="text-primary-600 font-bold text-xl">${book.price}</span>
-              <span className="text-sm text-gray-500 capitalize">{book.condition}</span>
+              <span className="text-xs text-gray-500 capitalize bg-gray-100 px-2 py-1 rounded">{book.condition}</span>
+              <span className="text-xs text-gray-500">{book.location?.city || 'India'}</span>
             </div>
           </Link>
         ))}
